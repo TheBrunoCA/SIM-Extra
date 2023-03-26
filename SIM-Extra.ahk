@@ -3,18 +3,21 @@
 SetWorkingDir A_ScriptDir
 TraySetIcon("assets\icon.ico")
 
+#Include lib\github.ahk
+#Include lib\Native.ahk
+
 ; Caminho UserProfile
 A_UserProfile := A_MyDocuments "\..\"
 
 ; Caminho para global_config.ini
 vPathToGlobalConfig := A_UserProfile "\" A_ScriptName "\global-config.ini"
 
-/* Carrega as configuracoes
-@Param path Caminho para o arquivo de configuracao global
-*/
-fCarregaGlobalConfig(path){
-    
-}
+; Carrega as hotkeys
+vHkDesligarPc := IniRead(vPathToGlobalConfig, "hotkeys", "desligar-pc", "^+q")
+
+; Carrega as hotstrings
+vHsLoginAuto := IniRead(vPathToGlobalConfig, "hotstrings", "login-auto", "bb")
+
 
 ; Menu de Configuracao
 ConfigMenu := Gui("-Resize -MaximizeBox +OwnDialogs", "SIM-Extra by Bruno | Menu de Configurações")
@@ -25,13 +28,20 @@ ConfigMenu.SetFont()
 ; Tabs de configuração
 ConfigTabs := ConfigMenu.AddTab(,["Hotkeys","HotStrings"])
 ConfigTabs.UseTab(1)
-ConfigMenu.AddText("x30 y90 w89 h23", "Desligar o PC")
-hk_DesligarPC := ConfigMenu.AddHotkey("x105 y87")
+
+
+ConfigMenu.AddGroupBox("xp+10 yp+20 h50", "Desligar o PC")
+ConfigMenu.AddHotkey("xp+10 yp+20", vHkDesligarPc)
+
 ConfigTabs.UseTab(2)
-ConfigMenu.AddText("x30 y90 w89 h23", "Teste")
-hs_Teste := ConfigMenu.AddEdit("x105 y87")
-ConfigMenu.AddText("x150 y110 w89 h23", "Para...")
-hss_Teste := ConfigMenu.AddEdit("x40 y125 w280 h25")
+
+ConfigMenu.AddGroupBox("x35 y80 h50", "Login automático")
+ConfigMenu.AddEdit("xp+10 yp+20 w100", vHsLoginAuto)
+
+ConfigTabs.UseTab()
+
+btnAplicar := ConfigMenu.AddButton("xs+90 w50 h30", "Aplicar")
+btnCancelar := ConfigMenu.AddButton("xp+60 w50 h30", "Cancelar")
 
 ConfigMenu.Show()
 
@@ -39,5 +49,5 @@ ConfigMenu.OnEvent("Close", fCloseConfig)
 
 ;Callback do evento Close
 fCloseConfig(thisGui){
-    MsgBox("Fechou")
+    ;MsgBox("Fechou")
 }
