@@ -1,53 +1,66 @@
 ﻿#Requires AutoHotkey v2.0
 #SingleInstance Force
 SetWorkingDir A_ScriptDir
-TraySetIcon("assets\icon.ico")
-
-#Include lib\github.ahk
-#Include lib\Native.ahk
-
-; Caminho UserProfile
-A_UserProfile := A_MyDocuments "\..\"
-
-; Caminho para global_config.ini
-vPathToGlobalConfig := A_UserProfile "\" A_ScriptName "\global-config.ini"
-
-; Carrega as hotkeys
-vHkDesligarPc := IniRead(vPathToGlobalConfig, "hotkeys", "desligar-pc", "^+q")
-
-; Carrega as hotstrings
-vHsLoginAuto := IniRead(vPathToGlobalConfig, "hotstrings", "login-auto", "bb")
 
 
-; Menu de Configuracao
-ConfigMenu := Gui("-Resize -MaximizeBox +OwnDialogs", "SIM-Extra by Bruno | Menu de Configurações")
-ConfigMenu.SetFont("s20", "Courier New")
-ConfigMenu.AddText("+Center", "SIM-Extra by Bruno")
-ConfigMenu.SetFont()
+; Includes
+#Include lib\extra-functions.ahk
+#Include lib\github-updater.ahk
 
-; Tabs de configuração
-ConfigTabs := ConfigMenu.AddTab(,["Hotkeys","HotStrings"])
-ConfigTabs.UseTab(1)
+dir_path := A_AppData "\" GetAppName()
 
+config_file := dir_path "\config.ini"
 
-ConfigMenu.AddGroupBox("xp+10 yp+20 h50", "Desligar o PC")
-ConfigMenu.AddHotkey("xp+10 yp+20", vHkDesligarPc)
+icon_path := dir_path "\icon.ico"
 
-ConfigTabs.UseTab(2)
+icon_url := "https://drive.google.com/uc?export=download&id=1xNRHV5RBpoEbag6-m5r5ry6y8zy1ZMLV"
 
-ConfigMenu.AddGroupBox("x35 y80 h50", "Login automático")
-ConfigMenu.AddEdit("xp+10 yp+20 w100", vHsLoginAuto)
+git_user := "TheBrunoCA"
 
-ConfigTabs.UseTab()
+git_repo := GetAppName()
 
-btnAplicar := ConfigMenu.AddButton("xs+90 w50 h30", "Aplicar")
-btnCancelar := ConfigMenu.AddButton("xp+60 w50 h30", "Cancelar")
-
-ConfigMenu.Show()
-
-ConfigMenu.OnEvent("Close", fCloseConfig)
-
-;Callback do evento Close
-fCloseConfig(thisGui){
-    ;MsgBox("Fechou")
+Class config{
+    static auto_update := true
+    static hk_shutdown := "^+q" ;Ctrl Shift Q
 }
+
+LoadConfigs(&git_hub){
+    if(DirExist(dir_path) == ""){
+        DirCreate(dir_path)
+    }
+    if(FileExist(config_file) == ""){
+        IniWrite("0", config_file, "version", GetAppName())
+        IniWrite(config.auto_update, config_file, "update", "auto-update")
+        IniWrite(config.hk_shutdown, config_file, "hotkeys", "hk_shutdown")
+    }
+    config.auto_update := IniRead(config_file, "update", "auto-update", config.auto_update)
+    config.hk_shutdown := IniRead(config_file, "hotkeys", "hk_shutdown", config.hk_shutdown)
+    if(!git_hub.is_online){
+        return
+    }
+    if(FileExist(icon_path) == ""){
+        Download(icon_url, icon_path)
+    }
+    TraySetIcon(icon_path)
+}
+
+ShutdownPc(){
+    answer := MsgBox("Deseja desligar o computador?", , "0x4")
+    if(answer == "Yes"){
+        sd := MsgBox("Desligando...", ,"T5 Cancel")
+        if(sd == "Timeout"){
+            ProcessClose "GoogleDriveFS.exe"
+            Shutdown 5
+        }
+    }
+}
+
+github := Git(git_user, git_repo)
+
+LoadConfigs(&github)
+
+if(config.auto_update){
+    CheckUpdates(&github, config_file)
+}
+
+^+q::ShutdownPc()
