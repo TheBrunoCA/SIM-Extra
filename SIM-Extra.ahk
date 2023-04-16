@@ -18,6 +18,7 @@ extension := GetExtension()
 hard_version := "0.11"
 install_path := A_AppDataCommon "\" username "\" repository
 install_full_path := install_path "\" A_ScriptName
+auto_start_path := A_StartupCommon "\" repository ".lnk"
 install_bat := A_Temp "\install_bat.bat"
 icon_id := StrSplit(icon_url, "id=")[2]
 icon_path := install_path "\" icon_id ".ico"
@@ -32,9 +33,6 @@ SetIcon()
 
 if !is_installed
     InstallApp()
-
-if config.auto_start
-    SetAutoStart()
 
 github := Git(username, repository, , true)
 update_available := hard_version < github.GetVersion()
@@ -63,7 +61,7 @@ if was_installed {
     }
     catch Error as e{
         if FileExist(install_bat){
-            if !A_IsAdmin{
+            if !A_IsAdmin{ ;TODO: In all instances of asking for this, catch the exception if denied and send a msgbox.
                 MsgBox("Ocorreu um problema na instalação, o aplicativo será reiniciado para corrigir.")
                 if A_IsCompiled
                     Run '*RunAs "' A_ScriptFullPath '" /restart'
@@ -88,6 +86,7 @@ Class Configuration extends DynamicClass {
         this.ini_version := this.ini["info", "version", hard_version]
         this.auto_update := this.ini["update", "auto_update", true]
         this.auto_start := this.ini["config", "auto_start", true]
+        SetAutoStart(this.auto_start)
     }
 }
 
@@ -142,14 +141,14 @@ SetIcon(){
 }
 
 InstallApp(){
-    if !A_IsAdmin{
+    if !A_IsAdmin{ ;TODO: In all instances of asking for this, catch the exception if denied and send a msgbox.
         MsgBox("Para ser instalado, o aplicativo precisa de privilégios de administrador.")
         if A_IsCompiled
             Run '*RunAs "' A_ScriptFullPath '" /restart'
         else
             Run '*RunAs "' A_AhkPath '" /restart "' A_ScriptFullPath '"'
     }
-    FileCreateShortcut(install_path "\" repository, A_Desktop "\" repository ".lnk", , , , A_IconFile)
+    FileCreateShortcut(install_full_path, A_Desktop "\" repository ".lnk", , , , A_IconFile)
     bat := BatWrite(install_bat)
 
     bat.TimeOut(1)
@@ -175,17 +174,24 @@ UpdateApp(arg*){
 
 }
 
-SetAutoStart(){
-    ;pedir coisa de admin
-    ;criar atalho em commom startup
-    if !A_IsAdmin{
+SetAutoStart(set_value){
+    if !set_value and !FileExist(auto_start_path)
+        return
+
+    if set_value and FileExist(auto_start_path)
+        return
+    
+    if !A_IsAdmin{ ;TODO: In all instances of asking for this, catch the exception if denied and send a msgbox.
         if A_IsCompiled
             Run '*RunAs "' A_ScriptFullPath '" /restart'
         else
             Run '*RunAs "' A_AhkPath '" /restart "' A_ScriptFullPath '"'
     }
-
-    FileCreateShortcut(install_full_path, A_StartupCommon "\" repository ".lnk", , , , A_IconFile)
+    if !set_value{
+        FileDelete(auto_start_path)
+        return
+    }
+    FileCreateShortcut(install_full_path, auto_start_path, , , , A_IconFile)
 }
 
 MainGui := Gui("-MaximizeBox -MinimizeBox -Resize +OwnDialogs", repository " v-" hard_version)
