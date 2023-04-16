@@ -15,7 +15,7 @@ repository := "SIM-Extra"
 icon_url := "https://drive.google.com/uc?export=download&id=19RKBTniHoFkcezIGyH1SoClP5Zz4ADu0"
 app_name := GetAppName()
 extension := GetExtension()
-hard_version := "0.11"
+hard_version := "0.12"
 install_path := A_AppDataCommon "\" username "\" repository
 install_full_path := install_path "\" A_ScriptName
 auto_start_path := A_StartupCommon "\" repository ".lnk"
@@ -164,6 +164,7 @@ UpdateApp(arg*){
     a := MsgBox("O aplicativo será atualizado.`nApenas aguarde.", repository, "t3")
 
     github.DownloadLatest(A_Temp, repository)
+    bat := BatWrite(A_Temp "\update_bat.bat")
     bat.TimeOut(1)
     bat.MoveFile(install_full_path, install_path "\" repository "_old" github.GetExtension())
     bat.MoveFile(A_Temp "\" repository github.GetExtension(), install_full_path)
