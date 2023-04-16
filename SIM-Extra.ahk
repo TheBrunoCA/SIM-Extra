@@ -15,7 +15,7 @@ repository := "SIM-Extra"
 icon_url := "https://drive.google.com/uc?export=download&id=19RKBTniHoFkcezIGyH1SoClP5Zz4ADu0"
 app_name := GetAppName()
 extension := GetExtension()
-hard_version := "0.12"
+hard_version := "0.13"
 install_path := A_AppDataCommon "\" username "\" repository
 install_full_path := install_path "\" A_ScriptName
 auto_start_path := A_StartupCommon "\" repository ".lnk"
@@ -96,23 +96,38 @@ Class HotkeysConfig extends DynamicClass {
         this.ini := Ini(dir_path "\hotkeys.ini")
         this.shutdown := this.ini["hotkeys", "shutdown", "^+q"]
         this.open_menu := this.ini["hotkeys", "open_menu", "^+m"]
+        this.default_user_hk := this.ini["hotkeys", "default_user_hk", "bb"]
+        this.default_user_string := this.ini["hotkeys", "default_user_string", "balcao b"]
         this.Enable()
     }
 
     Disable(){
         Hotkey(this.shutdown, "off")
         Hotkey(this.open_menu, "off")
+        Hotstring(":*:" this.default_user_hk, "off")
     }
 
     Enable(){
         Hotkey(this.shutdown, ShutdownPc, "on")
         Hotkey(this.open_menu, OpenMenu, "on")
+        Hotstring(":*:" this.default_user_hk, LoginDefaultUser, "on")
     }
 
     __BeforeReload(){
         this.Disable()
     }
 
+}
+
+LoginDefaultUser(ThisHotstring){
+    window := "SIM - login"
+    if WinExist(window){
+        WinActivate(window)
+        ControlSetText(StrSplit(hotkeys.default_user_string, " ")[1], "TEdit2", window)
+        ControlSetText(StrSplit(hotkeys.default_user_string, " ")[2], "TEdit1", window)
+        ControlFocus("TButton2", window)
+        ControlClick("TButton2", window)
+    }
 }
 
 ShutdownPc(ThisHotkey){
@@ -200,11 +215,18 @@ MainGui.SetFont("s20")
 MainGui.AddText("", repository " por " username)
 MainGui.SetFont("s8")
 tabs_main := MainGui.AddTab(, ["Geral", "Atalhos", "Configurações"])
+tabs_main.UseTab(1)
+MainGui.AddText(, "Login do usuário padrão")
+MainGui.AddGroupBox("R1", "Nome de usuário")
+MainGui.AddEdit("vedit_default_user_username").Value := StrSplit(hotkeys.default_user_string, " ")[1]
+MainGui.AddEdit("vedit_default_user_password").Value := StrSplit(hotkeys.default_user_string, " ")[2]
 tabs_main.UseTab(2)
 MainGui.AddText(, "Atalho para desligar pc")
 MainGui.AddHotkey("vhk_shutdown").Value := hotkeys.shutdown
 MainGui.AddText(, "Atalho para abrir menu")
 MainGui.AddHotkey("vhk_open_menu").Value := hotkeys.open_menu
+MainGui.AddText(, "Atalho para usuário padrão")
+MainGui.AddEdit("vedit_default_user_hotkey").Value := hotkeys.default_user_hk
 
 tabs_main.UseTab(3)
 MainGui.AddCheckbox("vckb_auto_update", "Atualizar automaticamente").Value := config.auto_update
@@ -226,5 +248,7 @@ MainGuiSubmit(arg*){
     config.Reload(install_path)
     hotkeys.ini["hotkeys", "shutdown"] := opts.hk_shutdown
     hotkeys.ini["hotkeys", "open_menu"] := opts.hk_open_menu
+    hotkeys.ini["hotkeys", "default_user_hk"] := opts.edit_default_user_hotkey
+    hotkeys.ini["hotkeys", "default_user_string"] := opts.edit_default_user_username " " opts.edit_default_user_password
     hotkeys.Reload(install_path)
 }
