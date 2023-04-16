@@ -126,7 +126,8 @@ LoginDefaultUser(ThisHotstring){
         ControlSetText(StrSplit(hotkeys.default_user_string, " ")[1], "TEdit2", window)
         ControlSetText(StrSplit(hotkeys.default_user_string, " ")[2], "TEdit1", window)
         ControlFocus("TButton2", window)
-        ControlClick("TButton2", window)
+        ;ControlClick("TButton2", window)
+        ControlSend("{Enter}", "TButton2", window)
     }
 }
 
