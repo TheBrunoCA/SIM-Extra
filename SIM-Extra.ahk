@@ -10,12 +10,16 @@
 #Include "Github-Updater.ahk\github-updater.ahk"
 
 
+debug := true
+if debug
+    MsgBox("Debug is active")
+
 username := "TheBrunoCA"
 repository := "SIM-Extra"
 icon_url := "https://drive.google.com/uc?export=download&id=19RKBTniHoFkcezIGyH1SoClP5Zz4ADu0"
 app_name := GetAppName()
 extension := GetExtension()
-hard_version := "0.131"
+hard_version := "0.132"
 install_path := A_AppDataCommon "\" username "\" repository
 install_full_path := install_path "\" A_ScriptName
 auto_start_path := A_StartupCommon "\" repository ".lnk"
@@ -23,7 +27,7 @@ install_bat := A_Temp "\install_bat.bat"
 icon_id := StrSplit(icon_url, "id=")[2]
 icon_path := install_path "\" icon_id ".ico"
 icon_changed := FileExist(icon_path) == ""
-is_installed := A_ScriptDir == install_path
+is_installed := debug ? true : A_ScriptDir == install_path
 was_installed := FileExist(install_bat) != ""
 config := Configuration(install_path)
 was_updated := config.ini["info", "version"] < hard_version
@@ -36,6 +40,13 @@ if !is_installed
 
 github := Git(username, repository, , true)
 update_available := hard_version < github.GetVersion()
+
+SetTimer(CheckUpdates, 60000)
+
+CheckUpdates(){
+    github.Reload()
+    global update_available := hard_version < github.GetVersion()
+}
 
 if config.auto_update and update_available
     UpdateApp()
@@ -138,6 +149,9 @@ ShutdownPc(ThisHotkey){
 }
 
 OpenMenu(ThisHotkey){
+    if update_available and config.auto_update{
+        MsgBox("Atualização encontrada, reinicie o aplicativo para atualizar.")
+    }
     MainGui.Show()
 }
 
@@ -221,6 +235,10 @@ MainGui.AddText(, "Login do usuário padrão")
 MainGui.AddGroupBox("R1", "Nome de usuário")
 MainGui.AddEdit("vedit_default_user_username").Value := StrSplit(hotkeys.default_user_string, " ")[1]
 MainGui.AddEdit("vedit_default_user_password").Value := StrSplit(hotkeys.default_user_string, " ")[2]
+btn_add_store := MainGui.AddButton(, "Cadastrar loja")
+btn_add_store.OnEvent("Click", btn_add_store_OnClick)
+btn_add_pc_on_store := MainGui.AddButton(, "Cadastrar pc em loja")
+btn_add_pc_on_store.OnEvent("Click", btn_add_pc_on_store_OnClick)
 tabs_main.UseTab(2)
 MainGui.AddText(, "Atalho para desligar pc")
 MainGui.AddHotkey("vhk_shutdown").Value := hotkeys.shutdown
@@ -236,11 +254,6 @@ MainGui.AddCheckbox("vckb_auto_start", "Abrir ao iniciar").Value := config.auto_
 tabs_main.UseTab()
 btn_submit := MainGui.AddButton("xs", "Aplicar")
 btn_submit.OnEvent("Click", MainGuiSubmit)
-if update_available{
-    MainGui.AddText("yp x+80", "Atualização disponível!")
-    btn_update := MainGui.AddButton("yp+20 xp+25", "Atualizar")
-    btn_update.OnEvent("Click", UpdateApp)
-}
 
 MainGuiSubmit(arg*){
     opts := MainGui.Submit(true)
@@ -252,4 +265,12 @@ MainGuiSubmit(arg*){
     hotkeys.ini["hotkeys", "default_user_hk"] := opts.edit_default_user_hotkey
     hotkeys.ini["hotkeys", "default_user_string"] := opts.edit_default_user_username " " opts.edit_default_user_password
     hotkeys.Reload(install_path)
+}
+
+btn_add_store_OnClick(arg*){
+
+}
+
+btn_add_pc_on_store_OnClick(arg*){
+
 }
