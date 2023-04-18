@@ -43,14 +43,13 @@ update_available := hard_version < github.GetVersion()
 
 SetTimer(CheckUpdates, 60000)
 
-CheckUpdates(){
+CheckUpdates() {
     github.Reload()
     global update_available := hard_version < github.GetVersion()
 }
 
 if config.auto_update and update_available
     UpdateApp()
-
 
 
 if was_updated {
@@ -67,22 +66,22 @@ hotkeys := HotkeysConfig(install_path)
 
 if was_installed {
     MsgBox("Instalado com sucesso.`nPressione " hotkeys.shutdown " para abrir o menu.")
-    try{
+    try {
         FileDelete(install_bat)
     }
-    catch Error as e{
-        if FileExist(install_bat){
-            if !A_IsAdmin{ ;TODO: In all instances of asking for this, catch the exception if denied and send a msgbox.
+    catch Error as e {
+        if FileExist(install_bat) {
+            if !A_IsAdmin { ;TODO: In all instances of asking for this, catch the exception if denied and send a msgbox.
                 MsgBox("Ocorreu um problema na instalação, o aplicativo será reiniciado para corrigir.")
                 if A_IsCompiled
                     Run '*RunAs "' A_ScriptFullPath '" /restart'
                 else
                     Run '*RunAs "' A_AhkPath '" /restart "' A_ScriptFullPath '"'
             }
-            else{
+            else {
                 bat := BatWrite(A_Temp "\1.bat")
                 bat.DeleteFile(install_bat)
-                
+
                 Run bat.path, , "Hide"
             }
         }
@@ -112,27 +111,27 @@ Class HotkeysConfig extends DynamicClass {
         this.Enable()
     }
 
-    Disable(){
+    Disable() {
         Hotkey(this.shutdown, "off")
         Hotkey(this.open_menu, "off")
         Hotstring(":*:" this.default_user_hk, "off")
     }
 
-    Enable(){
+    Enable() {
         Hotkey(this.shutdown, ShutdownPc, "on")
         Hotkey(this.open_menu, OpenMenu, "on")
         Hotstring(":*:" this.default_user_hk, LoginDefaultUser, "on")
     }
 
-    __BeforeReload(){
+    __BeforeReload() {
         this.Disable()
     }
 
 }
 
-LoginDefaultUser(ThisHotstring){
+LoginDefaultUser(ThisHotstring) {
     window := "SIM - login"
-    if WinExist(window){
+    if WinExist(window) {
         WinActivate(window)
         ControlSetText(StrSplit(hotkeys.default_user_string, " ")[1], "TEdit2", window)
         ControlSetText(StrSplit(hotkeys.default_user_string, " ")[2], "TEdit1", window)
@@ -142,36 +141,40 @@ LoginDefaultUser(ThisHotstring){
     }
 }
 
-ShutdownPc(ThisHotkey){
+ShutdownPc(ThisHotkey) {
     asw := MsgBox("Deseja desligar o pc?", "Desligarás?", "0x4 0x1000 0x20")
     if asw == "Yes"
         Shutdown(13)
 }
 
-OpenMenu(ThisHotkey){
-    if update_available and config.auto_update{
+OpenMenu(ThisHotkey) {
+    if update_available and config.auto_update {
         MsgBox("Atualização encontrada, reinicie o aplicativo para atualizar.")
     }
     MainGui.Show()
 }
 
-SetIcon(){
-    if icon_changed{
-        if IsOnline(){
-            try{
+SetIcon() {
+    if icon_changed {
+        if IsOnline() {
+            try {
                 Download(icon_url, icon_path)
                 TraySetIcon(icon_path)
                 return
             }
         }
-        TraySetIcon("*")
+        try {
+            TraySetIcon("*")
+        }
         return
     }
-    TraySetIcon(icon_path)
+    try {
+        TraySetIcon(icon_path)
+    }
 }
 
-InstallApp(){
-    if !A_IsAdmin{ ;TODO: In all instances of asking for this, catch the exception if denied and send a msgbox.
+InstallApp() {
+    if !A_IsAdmin { ;TODO: In all instances of asking for this, catch the exception if denied and send a msgbox.
         MsgBox("Para ser instalado, o aplicativo precisa de privilégios de administrador.")
         if A_IsCompiled
             Run '*RunAs "' A_ScriptFullPath '" /restart'
@@ -190,7 +193,7 @@ InstallApp(){
     ExitApp(200)
 }
 
-UpdateApp(arg*){
+UpdateApp(arg*) {
     a := MsgBox("O aplicativo será atualizado.`nApenas aguarde.", repository, "t3")
 
     github.DownloadLatest(A_Temp, repository)
@@ -205,20 +208,20 @@ UpdateApp(arg*){
 
 }
 
-SetAutoStart(set_value){
+SetAutoStart(set_value) {
     if !set_value and !FileExist(auto_start_path)
         return
 
     if set_value and FileExist(auto_start_path)
         return
-    
-    if !A_IsAdmin{ ;TODO: In all instances of asking for this, catch the exception if denied and send a msgbox.
+
+    if !A_IsAdmin { ;TODO: In all instances of asking for this, catch the exception if denied and send a msgbox.
         if A_IsCompiled
             Run '*RunAs "' A_ScriptFullPath '" /restart'
         else
             Run '*RunAs "' A_AhkPath '" /restart "' A_ScriptFullPath '"'
     }
-    if !set_value{
+    if !set_value {
         FileDelete(auto_start_path)
         return
     }
@@ -255,7 +258,7 @@ tabs_main.UseTab()
 btn_submit := MainGui.AddButton("xs", "Aplicar")
 btn_submit.OnEvent("Click", MainGuiSubmit)
 
-MainGuiSubmit(arg*){
+MainGuiSubmit(arg*) {
     opts := MainGui.Submit(true)
     config.ini["update", "auto_update"] := opts.ckb_auto_update
     config.ini["config", "auto_start"] := opts.ckb_auto_start
@@ -267,10 +270,10 @@ MainGuiSubmit(arg*){
     hotkeys.Reload(install_path)
 }
 
-btn_add_store_OnClick(arg*){
+btn_add_store_OnClick(arg*) {
 
 }
 
-btn_add_pc_on_store_OnClick(arg*){
+btn_add_pc_on_store_OnClick(arg*) {
 
 }
