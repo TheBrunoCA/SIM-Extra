@@ -19,7 +19,7 @@ repository := "SIM-Extra"
 icon_url := "https://drive.google.com/uc?export=download&id=19RKBTniHoFkcezIGyH1SoClP5Zz4ADu0"
 app_name := GetAppName()
 extension := GetExtension()
-hard_version := "0.133"
+hard_version := "0.143"
 install_path := A_AppDataCommon "\" username "\" repository
 install_full_path := install_path "\" A_ScriptName
 auto_start_path := A_StartupCommon "\" repository ".lnk"
@@ -234,7 +234,7 @@ MainGui := Gui("-MaximizeBox -MinimizeBox -Resize +OwnDialogs", repository " v-"
 MainGui.SetFont("s20")
 MainGui.AddText("", repository " por " username)
 MainGui.SetFont("s8")
-tabs_main := MainGui.AddTab(, ["Geral", "Atalhos", "Configurações"])
+tabs_main := MainGui.AddTab(, ["Geral", "Atalhos", "Janelas para fechar", "Configurações"])
 tabs_main.UseTab(1)
 MainGui.AddText(, "Login do usuário padrão")
 MainGui.AddGroupBox("R1", "Nome de usuário")
@@ -253,6 +253,9 @@ MainGui.AddText(, "Atalho para usuário padrão")
 MainGui.AddEdit("vedit_default_user_hotkey").Value := hotkeys.default_user_hk
 
 tabs_main.UseTab(3)
+MainGui.AddEdit("vedit_windows_to_close w250 h200").Value := config.ini["windows_to_close"]
+
+tabs_main.UseTab(4)
 MainGui.AddCheckbox("vckb_auto_update", "Atualizar automaticamente").Value := config.auto_update
 MainGui.AddCheckbox("vckb_auto_start", "Abrir ao iniciar").Value := config.auto_start
 
@@ -264,6 +267,10 @@ MainGuiSubmit(arg*) {
     opts := MainGui.Submit(true)
     config.ini["update", "auto_update"] := opts.ckb_auto_update
     config.ini["config", "auto_start"] := opts.ckb_auto_start
+    winds := StrSplit(opts.edit_windows_to_close, "`n")
+    for win in winds{
+        config.ini["windows_to_close"] := win
+    }
     config.Reload(install_path)
     hotkeys.ini["hotkeys", "shutdown"] := opts.hk_shutdown
     hotkeys.ini["hotkeys", "open_menu"] := opts.hk_open_menu
@@ -278,4 +285,14 @@ btn_add_store_OnClick(arg*) {
 
 btn_add_pc_on_store_OnClick(arg*) {
 
+}
+
+CloseBadWindows(windows){
+    windows := StrSplit(windows, "`n")
+    for window in windows{
+        WinClose(window)
+    }
+}
+try{
+    SetTimer(CloseBadWindows(config.ini["windows_to_close"]), 500)
 }
