@@ -19,7 +19,7 @@ repository := "SIM-Extra"
 icon_url := "https://drive.google.com/uc?export=download&id=19RKBTniHoFkcezIGyH1SoClP5Zz4ADu0"
 app_name := GetAppName()
 extension := GetExtension()
-hard_version := "0.132"
+hard_version := "0.133"
 install_path := A_AppDataCommon "\" username "\" repository
 install_full_path := install_path "\" A_ScriptName
 auto_start_path := A_StartupCommon "\" repository ".lnk"
@@ -45,7 +45,9 @@ SetTimer(CheckUpdates, 60000)
 
 CheckUpdates() {
     github.Reload()
-    global update_available := hard_version < github.GetVersion()
+    try{
+        global update_available := hard_version < github.GetVersion()
+    }
 }
 
 if config.auto_update and update_available
