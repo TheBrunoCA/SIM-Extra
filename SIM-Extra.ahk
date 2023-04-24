@@ -1,13 +1,12 @@
 ﻿#SingleInstance Force
 #Requires AutoHotkey v2.0
 
-#Include "G:\Meu Drive\Repos\libraries"
-#Include "Bruno-Functions\bruno-functions.ahk"
-#Include "Bruno-Functions\IsOnline.ahk"
-#Include "Bruno-Functions\Ini.ahk"
-#Include "Bruno-Functions\DynamicClass.ahk"
-#Include "Bruno-Functions\BatWrite.ahk"
-#Include "Github-Updater.ahk\github-updater.ahk"
+#Include ..\libraries\Bruno-Functions\bruno-functions.ahk
+#Include ..\libraries\Bruno-Functions\IsOnline.ahk
+#Include ..\libraries\Bruno-Functions\Ini.ahk
+#Include ..\libraries\Bruno-Functions\DynamicClass.ahk
+#Include ..\libraries\Bruno-Functions\BatWrite.ahk
+#Include ..\libraries\Github-Updater.ahk\github-updater.ahk
 
 
 debug := false
@@ -19,7 +18,7 @@ repository := "SIM-Extra"
 icon_url := "https://drive.google.com/uc?export=download&id=19RKBTniHoFkcezIGyH1SoClP5Zz4ADu0"
 app_name := GetAppName()
 extension := GetExtension()
-hard_version := "0.143"
+hard_version := "0.145"
 install_path := A_AppDataCommon "\" username "\" repository
 install_full_path := install_path "\" A_ScriptName
 auto_start_path := A_StartupCommon "\" repository ".lnk"
@@ -269,6 +268,8 @@ MainGuiSubmit(arg*) {
     config.ini["config", "auto_start"] := opts.ckb_auto_start
     winds := StrSplit(opts.edit_windows_to_close, "`n")
     for win in winds{
+        if InStr(config.ini["windows_to_close"], win) and win != ""
+            continue
         config.ini["windows_to_close"] := win
     }
     config.Reload(install_path)
@@ -287,12 +288,18 @@ btn_add_pc_on_store_OnClick(arg*) {
 
 }
 
-CloseBadWindows(windows){
-    windows := StrSplit(windows, "`n")
+CloseBadWindows(){
+    windows := StrSplit(config.ini["windows_to_close"], "`n")
+    if windows == ""
+        return
+
     for window in windows{
-        WinClose(window)
+        if window == ""
+            continue
+        if WinExist(window)
+            WinClose(window)
     }
 }
 try{
-    SetTimer(CloseBadWindows(config.ini["windows_to_close"]), 500)
+    SetTimer(CloseBadWindows, 500)
 }
