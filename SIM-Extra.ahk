@@ -241,17 +241,17 @@ tabs_main.UseTab(1)
 MainGui.AddText(, "Login do usuário padrão")
 MainGui.AddEdit("vedit_default_user_username").Value := StrSplit(hotkeys.default_user_string, " ")[1]
 MainGui.AddEdit("vedit_default_user_password").Value := StrSplit(hotkeys.default_user_string, " ")[2]
-MainGui.AddButton("vbtn_open_BuscaPMC", "Buscar medicamento.")
-MainGui.OnEvent("Click", openBuscaPMC)
+btn_open_BuscaPMC := MainGui.AddButton("vbtn_open_BuscaPMC", "Buscar medicamento.")
+btn_open_BuscaPMC.OnEvent("Click", openBuscaPMC)
 tabs_main.UseTab(2)
 MainGui.AddText(, "Atalho para desligar pc")
 MainGui.AddHotkey("vhk_shutdown").Value := hotkeys.shutdown
 MainGui.AddText(, "Atalho para abrir menu")
 MainGui.AddHotkey("vhk_open_menu").Value := hotkeys.open_menu
+MainGui.AddText(, "Atalho para o BuscaPMC")
+MainGui.AddHotkey("vedit_open_BuscaPMC_hotkey").Value := hotkeys.open_BuscaPMC
 MainGui.AddText(, "Atalho para usuário padrão")
 MainGui.AddEdit("vedit_default_user_hotkey").Value := hotkeys.default_user_hk
-MainGui.AddText(, "Atalho para o BuscaPMC")
-MainGui.AddEdit("vedit_open_BuscaPMC_hotkey").Value := hotkeys.open_BuscaPMC
 
 tabs_main.UseTab(3)
 MainGui.AddEdit("vedit_windows_to_close w250 h200").Value := config.ini["windows_to_close"]
