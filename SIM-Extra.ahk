@@ -1,24 +1,23 @@
 ﻿#SingleInstance Force
 #Requires AutoHotkey v2.0
 
-#Include ..\libraries\Bruno-Functions\bruno-functions.ahk
-#Include ..\libraries\Bruno-Functions\IsOnline.ahk
-#Include ..\libraries\Bruno-Functions\Ini.ahk
-#Include ..\libraries\Bruno-Functions\DynamicClass.ahk
-#Include ..\libraries\Bruno-Functions\BatWrite.ahk
+#Include ..\libraries\Bruno-Functions\ImportAllList.ahk
 #Include ..\libraries\Github-Updater.ahk\github-updater.ahk
 
 
-debug := false
+debug := true
 if debug
     MsgBox("Debug is active")
 
 username := "TheBrunoCA"
 repository := "SIM-Extra"
+buscaPMCRepo := "BuscaPMC"
+buscaPMCPath := A_AppData "\" username "\" buscaPMCRepo
+buscaPMCConfig := buscaPMCPath "\" buscaPMCRepo "_config.ini"
 icon_url := "https://drive.google.com/uc?export=download&id=19RKBTniHoFkcezIGyH1SoClP5Zz4ADu0"
 app_name := GetAppName()
 extension := GetExtension()
-hard_version := "0.145"
+hard_version := "0.150"
 install_path := A_AppDataCommon "\" username "\" repository
 install_full_path := install_path "\" A_ScriptName
 auto_start_path := A_StartupCommon "\" repository ".lnk"
@@ -38,6 +37,7 @@ if !is_installed
     InstallApp()
 
 github := Git(username, repository, , true)
+buscaGithub := Git(username, buscaPMCRepo)
 update_available := hard_version < github.GetVersion()
 
 SetTimer(CheckUpdates, 60000)
@@ -103,24 +103,27 @@ Class Configuration extends DynamicClass {
 
 Class HotkeysConfig extends DynamicClass {
     __Load(dir_path) {
-        this.dir_path := NewDir(dir_path)
-        this.ini := Ini(dir_path "\hotkeys.ini")
-        this.shutdown := this.ini["hotkeys", "shutdown", "^+q"]
-        this.open_menu := this.ini["hotkeys", "open_menu", "^+m"]
-        this.default_user_hk := this.ini["hotkeys", "default_user_hk", "bb"]
-        this.default_user_string := this.ini["hotkeys", "default_user_string", "balcao b"]
-        this.Enable()
+        this.dir_path               := NewDir(dir_path)
+        this.ini                    := Ini(dir_path "\hotkeys.ini")
+        this.shutdown               := this.ini["hotkeys", "shutdown", "^+q"]
+        this.open_menu              := this.ini["hotkeys", "open_menu", "^+m"]
+        this.open_BuscaPMC          := this.ini["hotkeys", "open_BuscaPMC", "^+a"]
+        this.default_user_hk        := this.ini["hotkeys", "default_user_hk", "bb"]
+        this.default_user_string    := this.ini["hotkeys", "default_user_string", "balcao b"]
+        this.Enable()               
     }
 
     Disable() {
         Hotkey(this.shutdown, "off")
         Hotkey(this.open_menu, "off")
+        Hotkey(this.open_BuscaPMC, "off")
         Hotstring(":*:" this.default_user_hk, "off")
     }
 
     Enable() {
         Hotkey(this.shutdown, ShutdownPc, "on")
         Hotkey(this.open_menu, OpenMenu, "on")
+        Hotkey(this.open_BuscaPMC, openBuscaPMC, "on")
         Hotstring(":*:" this.default_user_hk, LoginDefaultUser, "on")
     }
 
@@ -236,13 +239,10 @@ MainGui.SetFont("s8")
 tabs_main := MainGui.AddTab(, ["Geral", "Atalhos", "Janelas para fechar", "Configurações"])
 tabs_main.UseTab(1)
 MainGui.AddText(, "Login do usuário padrão")
-MainGui.AddGroupBox("R1", "Nome de usuário")
 MainGui.AddEdit("vedit_default_user_username").Value := StrSplit(hotkeys.default_user_string, " ")[1]
 MainGui.AddEdit("vedit_default_user_password").Value := StrSplit(hotkeys.default_user_string, " ")[2]
-btn_add_store := MainGui.AddButton(, "Cadastrar loja")
-btn_add_store.OnEvent("Click", btn_add_store_OnClick)
-btn_add_pc_on_store := MainGui.AddButton(, "Cadastrar pc em loja")
-btn_add_pc_on_store.OnEvent("Click", btn_add_pc_on_store_OnClick)
+MainGui.AddButton("vbtn_open_BuscaPMC", "Buscar medicamento.")
+MainGui.OnEvent("Click", openBuscaPMC)
 tabs_main.UseTab(2)
 MainGui.AddText(, "Atalho para desligar pc")
 MainGui.AddHotkey("vhk_shutdown").Value := hotkeys.shutdown
@@ -250,6 +250,8 @@ MainGui.AddText(, "Atalho para abrir menu")
 MainGui.AddHotkey("vhk_open_menu").Value := hotkeys.open_menu
 MainGui.AddText(, "Atalho para usuário padrão")
 MainGui.AddEdit("vedit_default_user_hotkey").Value := hotkeys.default_user_hk
+MainGui.AddText(, "Atalho para o BuscaPMC")
+MainGui.AddEdit("vedit_open_BuscaPMC_hotkey").Value := hotkeys.open_BuscaPMC
 
 tabs_main.UseTab(3)
 MainGui.AddEdit("vedit_windows_to_close w250 h200").Value := config.ini["windows_to_close"]
@@ -277,15 +279,8 @@ MainGuiSubmit(arg*) {
     hotkeys.ini["hotkeys", "open_menu"] := opts.hk_open_menu
     hotkeys.ini["hotkeys", "default_user_hk"] := opts.edit_default_user_hotkey
     hotkeys.ini["hotkeys", "default_user_string"] := opts.edit_default_user_username " " opts.edit_default_user_password
+    hotkeys.ini["hotkeys", "open_BuscaPMC"] := opts.open_BuscaPMC
     hotkeys.Reload(install_path)
-}
-
-btn_add_store_OnClick(arg*) {
-
-}
-
-btn_add_pc_on_store_OnClick(arg*) {
-
 }
 
 CloseBadWindows(){
@@ -302,4 +297,33 @@ CloseBadWindows(){
 }
 try{
     SetTimer(CloseBadWindows, 500)
+}
+
+openBuscaPMC(args*){
+    if FileExist(buscaPMCConfig){
+        buscaini := Ini(buscaPMCConfig)
+    }
+    else{
+        path := buscaGithub.DownloadLatest(install_path, buscaPMCRepo)
+        try{
+            Run(path)
+            return
+        } catch{
+            MsgBox("Falha ao iniciar o BuscaPMC", , "0x1000 T10")
+            return
+        }
+    }
+    try{
+        Run(buscaini["info", "exe_path"])
+        return
+    } catch{
+        path := buscaGithub.DownloadLatest(install_path, buscaPMCRepo)
+        try{
+            Run(path)
+            return
+        } catch{
+            MsgBox("Falha ao iniciar o BuscaPMC", , "0x1000 T10")
+            return
+        }
+    }
 }
