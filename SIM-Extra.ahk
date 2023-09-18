@@ -249,7 +249,7 @@ MainGui.AddHotkey("vhk_shutdown").Value := hotkeys.shutdown
 MainGui.AddText(, "Atalho para abrir menu")
 MainGui.AddHotkey("vhk_open_menu").Value := hotkeys.open_menu
 MainGui.AddText(, "Atalho para o BuscaPMC")
-MainGui.AddHotkey("vedit_open_BuscaPMC_hotkey").Value := hotkeys.open_BuscaPMC
+MainGui.AddHotkey("vhk_open_BuscaPMC").Value := hotkeys.open_BuscaPMC
 MainGui.AddText(, "Atalho para usuário padrão")
 MainGui.AddEdit("vedit_default_user_hotkey").Value := hotkeys.default_user_hk
 
@@ -277,9 +277,9 @@ MainGuiSubmit(arg*) {
     config.Reload(install_path)
     hotkeys.ini["hotkeys", "shutdown"] := opts.hk_shutdown
     hotkeys.ini["hotkeys", "open_menu"] := opts.hk_open_menu
+    hotkeys.ini["hotkeys", "open_BuscaPMC"] := opts.hk_open_BuscaPMC
     hotkeys.ini["hotkeys", "default_user_hk"] := opts.edit_default_user_hotkey
     hotkeys.ini["hotkeys", "default_user_string"] := opts.edit_default_user_username " " opts.edit_default_user_password
-    hotkeys.ini["hotkeys", "open_BuscaPMC"] := opts.open_BuscaPMC
     hotkeys.Reload(install_path)
 }
 
