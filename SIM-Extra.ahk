@@ -5,7 +5,7 @@
 #Include ..\libraries\Github-Updater.ahk\github-updater.ahk
 
 
-debug := true
+debug := false
 if debug
     MsgBox("Debug is active")
 
