@@ -36,7 +36,7 @@ SetIcon()
 if !is_installed
     InstallApp()
 
-github := Git(username, repository, , true)
+github := Git(username, repository)
 buscaGithub := Git(username, buscaPMCRepo)
 update_available := hard_version < github.GetVersion()
 
