@@ -27,6 +27,7 @@ icon_path := install_path "\" icon_id ".ico"
 icon_changed := FileExist(icon_path) == ""
 is_installed := debug ? true : A_ScriptDir == install_path
 was_installed := FileExist(install_bat) != ""
+simConfigIniPath := "C:\SIM\config.ini"
 config := Configuration(install_path)
 was_updated := config.ini["info", "version"] < hard_version
 retroceded := config.ini["info", "version"] > hard_version
@@ -134,14 +135,27 @@ Class HotkeysConfig extends DynamicClass {
 }
 
 LoginDefaultUser(ThisHotstring) {
-    window := "SIM - login"
-    if WinExist(window) {
-        WinActivate(window)
-        ControlSetText(StrSplit(hotkeys.default_user_string, " ")[1], "TEdit2", window)
-        ControlSetText(StrSplit(hotkeys.default_user_string, " ")[2], "TEdit1", window)
-        ControlFocus("TButton2", window)
-        ;ControlClick("TButton2", window)
-        ControlSend("{Enter}", "TButton2", window)
+    windowLogin := "SIM - login"
+    windowAuth := "F_AUT - AUTORIZAÇÃO"
+    store := IniRead(simConfigIniPath, "Connection", "LOJASSINCRONIZA", "638,248")
+    store := StrSplit(store, ",")
+    store := IniRead(simConfigIniPath, "MultiSuporte", "CNPJ", "06.031.296/0001-94") == "06.031.296/0001-94" ? store[2] : store[1]
+
+    if WinExist(windowLogin) {
+        WinActivate(windowLogin)
+        ControlFocus("TEdit3", windowLogin)
+        ControlSetText(store, "TEdit3", windowLogin)
+        ControlSetText(StrSplit(hotkeys.default_user_string, " ")[1], "TEdit2", windowLogin)
+        ControlSetText(StrSplit(hotkeys.default_user_string, " ")[2], "TEdit1", windowLogin)
+        ControlFocus("TButton2", windowLogin)
+        ControlSend("{Enter}", "TButton2", windowLogin)
+    }
+    else if WinExist(windowAuth){
+        WinActivate(windowAuth)
+        ControlSetText(StrSplit(hotkeys.default_user_string, " ")[1], "TEdit2", windowAuth)
+        ControlSetText(StrSplit(hotkeys.default_user_string, " ")[2], "TEdit3", windowAuth)
+        ControlFocus("TButton3", windowAuth)
+        ControlSend("{Enter}", "TButton3", windowAuth)
     }
 }
 
