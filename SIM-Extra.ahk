@@ -149,6 +149,7 @@ LoginDefaultUser(ThisHotstring) {
         ControlSetText(StrSplit(hotkeys.default_user_string, " ")[2], "TEdit1", windowLogin)
         ControlFocus("TButton2", windowLogin)
         ControlSend("{Enter}", "TButton2", windowLogin)
+        ControlClick("TButton2", windowLogin, , "LEFT")
     }
     else if WinExist(windowAuth){
         WinActivate(windowAuth)
@@ -156,6 +157,7 @@ LoginDefaultUser(ThisHotstring) {
         ControlSetText(StrSplit(hotkeys.default_user_string, " ")[2], "TEdit3", windowAuth)
         ControlFocus("TButton3", windowAuth)
         ControlSend("{Enter}", "TButton3", windowAuth)
+        ControlClick("TButton3", windowAuth, , "LEFT")
     }
 }
 
