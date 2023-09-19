@@ -325,6 +325,6 @@ try{
 
 openBuscaPMC(args*){
     if not FileExist(buscaPMCPath)
-        github.DownloadLatest(install_path, buscaPMCRepo)
+        buscaGithub.DownloadLatest(install_path, buscaPMCRepo)
     Run(buscaPMCPath)
 }
