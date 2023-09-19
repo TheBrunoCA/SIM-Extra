@@ -270,7 +270,7 @@ MainGui.AddText(, "Atalho para usuário padrão")
 MainGui.AddEdit("vedit_default_user_hotkey").Value := hotkeys.default_user_hk
 
 tabs_main.UseTab(3)
-MainGui.AddEdit("vedit_windows_to_close w250 h200").Value := config.ini["windows_to_close"]
+MainGui.AddEdit("vedit_windows_to_close w250 h200").Value :=StrReplace(config.ini["windows_to_close", "windows"], ",;,", "`n")
 
 tabs_main.UseTab(4)
 MainGui.AddCheckbox("vckb_auto_update", "Atualizar automaticamente").Value := config.auto_update
@@ -284,12 +284,11 @@ MainGuiSubmit(arg*) {
     opts := MainGui.Submit(true)
     config.ini["update", "auto_update"] := opts.ckb_auto_update
     config.ini["config", "auto_start"] := opts.ckb_auto_start
-    winds := StrSplit(opts.edit_windows_to_close, "`n")
-    for win in winds{
-        if InStr(config.ini["windows_to_close"], win) and win != ""
-            continue
-        config.ini["windows_to_close"] := win
-    }
+    opts.edit_windows_to_close .= "`n`n"
+    opts.edit_windows_to_close := StrReplace(opts.edit_windows_to_close, "`n`n`n", "")
+    opts.edit_windows_to_close := StrReplace(opts.edit_windows_to_close, "`n`n", "")
+    winds := StrReplace(opts.edit_windows_to_close, "`n", ",;,")
+    config.ini["windows_to_close", "windows"] := winds
     config.Reload(install_path)
     hotkeys.ini["hotkeys", "shutdown"] := opts.hk_shutdown
     hotkeys.ini["hotkeys", "open_menu"] := opts.hk_open_menu
@@ -300,11 +299,12 @@ MainGuiSubmit(arg*) {
 }
 
 CloseBadWindows(){
-    windows := StrSplit(config.ini["windows_to_close"], "`n")
-    if windows == "" or windows == "="
+    windows := StrSplit(config.ini["windows_to_close", "windows"], ",;,")
+    if windows == "" or windows == "=" or window == " "
         return
 
     for window in windows{
+        window := StrReplace(window, "   ", "")
         if window == "" or window == "="
             continue
         if WinExist(window)
