@@ -136,7 +136,7 @@ Class HotkeysConfig extends DynamicClass {
 
 LoginDefaultUser(ThisHotstring) {
     windowLogin := "SIM - login"
-    windowAuth := "F_AUT - AUTORIZAÇÃO"
+    windowAuth := "F_AUT"
     store := IniRead(simConfigIniPath, "Connection", "LOJASSINCRONIZA", "638,248")
     store := StrSplit(store, ",")
     store := IniRead(simConfigIniPath, "MultiSuporte", "CNPJ", "06.031.296/0001-94") == "06.031.296/0001-94" ? store[2] : store[1]
