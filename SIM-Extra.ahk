@@ -17,7 +17,7 @@ buscaPMCConfig := buscaPMCPath "\" buscaPMCRepo "_config.ini"
 icon_url := "https://drive.google.com/uc?export=download&id=19RKBTniHoFkcezIGyH1SoClP5Zz4ADu0"
 app_name := GetAppName()
 extension := GetExtension()
-hard_version := "0.152"
+hard_version := "0.153"
 install_path := A_AppDataCommon "\" username "\" repository
 install_full_path := install_path "\" A_ScriptName
 auto_start_path := A_StartupCommon "\" repository ".lnk"
@@ -270,6 +270,9 @@ MainGui.AddText(, "Atalho para usuário padrão")
 MainGui.AddEdit("vedit_default_user_hotkey").Value := hotkeys.default_user_hk
 
 tabs_main.UseTab(3)
+config.ini["windows_to_close", "windows"] .= ",;,,;,"
+config.ini["windows_to_close", "windows"] := StrReplace(config.ini["windows_to_close", "windows"], ",;,,;,,;,", "")
+config.ini["windows_to_close", "windows"] := StrReplace(config.ini["windows_to_close", "windows"], ",;,,;,", "")
 MainGui.AddEdit("vedit_windows_to_close w250 h200").Value :=StrReplace(config.ini["windows_to_close", "windows"], ",;,", "`n")
 
 tabs_main.UseTab(4)
