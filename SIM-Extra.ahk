@@ -17,8 +17,9 @@ buscaPMCConfig := buscaPMCPath "\" buscaPMCRepo "_config.ini"
 icon_url := "https://drive.google.com/uc?export=download&id=19RKBTniHoFkcezIGyH1SoClP5Zz4ADu0"
 app_name := GetAppName()
 extension := GetExtension()
-hard_version := "0.153"
+hard_version := "0.154"
 install_path := A_AppDataCommon "\" username "\" repository
+buscaPMCPath := install_path "\" buscaPMCRepo ".exe"
 install_full_path := install_path "\" A_ScriptName
 auto_start_path := A_StartupCommon "\" repository ".lnk"
 install_bat := A_Temp "\install_bat.bat"
@@ -196,10 +197,12 @@ SetIcon() {
 InstallApp() {
     if !A_IsAdmin { ;TODO: In all instances of asking for this, catch the exception if denied and send a msgbox.
         MsgBox("Para ser instalado, o aplicativo precisa de privilégios de administrador.")
-        if A_IsCompiled
-            Run '*RunAs "' A_ScriptFullPath '" /restart'
-        else
-            Run '*RunAs "' A_AhkPath '" /restart "' A_ScriptFullPath '"'
+        try{
+            if A_IsCompiled
+                Run '*RunAs "' A_ScriptFullPath '" /restart'
+            else
+                Run '*RunAs "' A_AhkPath '" /restart "' A_ScriptFullPath '"'
+        }
     }
     FileCreateShortcut(install_full_path, A_Desktop "\" repository ".lnk", , , , A_IconFile)
     bat := BatWrite(install_bat)
@@ -317,34 +320,11 @@ CloseBadWindows(){
     }
 }
 try{
-    SetTimer(CloseBadWindows, 500)
+    ;SetTimer(CloseBadWindows, 500)
 }
 
 openBuscaPMC(args*){
-    if FileExist(buscaPMCConfig){
-        buscaini := Ini(buscaPMCConfig)
-    }
-    else{
-        path := buscaGithub.DownloadLatest(install_path, buscaPMCRepo)
-        try{
-            Run(path)
-            return
-        } catch{
-            MsgBox("Falha ao iniciar o BuscaPMC", , "0x1000 T10")
-            return
-        }
-    }
-    try{
-        Run(buscaini["info", "exe_path"])
-        return
-    } catch{
-        path := buscaGithub.DownloadLatest(install_path, buscaPMCRepo)
-        try{
-            Run(path)
-            return
-        } catch{
-            MsgBox("Falha ao iniciar o BuscaPMC", , "0x1000 T10")
-            return
-        }
-    }
+    if not FileExist(buscaPMCPath)
+        github.DownloadLatest(install_path, buscaPMCRepo)
+    Run(buscaPMCPath)
 }
