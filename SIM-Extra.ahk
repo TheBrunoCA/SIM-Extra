@@ -299,14 +299,16 @@ MainGuiSubmit(arg*) {
 }
 
 CloseBadWindows(){
-    windows := StrSplit(config.ini["windows_to_close", "windows"], ",;,")
+    windows := config.ini["windows_to_close", "windows"]
     if windows == "" or windows == "=" or windows == " "
         return
+    windows := StrSplit(windows, ",;,")
 
     for window in windows{
         window := StrReplace(window, "   ", "")
-        if window == "" or window == "="
+        if window == "" or window == "=" or window == " " or window == "   "
             continue
+        
         if WinExist(window)
             WinClose(window)
     }
